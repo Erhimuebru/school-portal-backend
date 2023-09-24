@@ -8,7 +8,7 @@ import { User } from '../user/user.schema';
 @Injectable()
 export class JwtAuthGuard extends PassportStrategy(Strategy) {
   constructor(
-    @InjectModel("User")
+    @InjectModel(User.name)
     private userModel: Model<User>,
   ) {
     super({

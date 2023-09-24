@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/dto/create-user.dto';
-import { User, UserDocument } from './user.schema';
+import { User, UserDocument, Users } from './user.schema';
 import { ConflictException } from '@nestjs/common';
 import { LoginDto } from 'src/dto/login.dto';
 import * as bcrypt from 'bcrypt';
@@ -18,15 +18,24 @@ export class UsersService
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Transaction.name) private transactionModel: Model<TransactionDocument>,
   ) {}
+  async createUser(createUserDto: CreateUserDto): Promise<User>
+  {
+    const { phoneNumber, password } = createUserDto;
 
+    // Check if a user with the same phone number already exists
+    const existingUser = await this.userModel.findOne({ phoneNumber });
 
-async createUser(createUserDto: CreateUserDto): Promise<User> {
-  const createdUser = new this.userModel(createUserDto);
-  return createdUser.save();
+    if (existingUser) {
+      // User with the same phone number already exists
+      throw new ConflictException('User with the same phone number already exists');
+    }
+
+    const createdUser = new this.userModel({ phoneNumber, password });
+
+     const savedUser = await createdUser.save();
+ 
+  return savedUser;
 }
-
-
-
 
 
   async loginUser(loginDto: LoginDto)
@@ -65,77 +74,25 @@ async createUser(createUserDto: CreateUserDto): Promise<User> {
   {
     return this.userModel.findOne({ phoneNumber }).exec();
   }
-  // Import the ObjectId type from mongoose
+ 
 
-async deposit(userId: string, amount: number): Promise<User> {
-  const user = await this.userModel.findById(userId);
-
-  if (!user) {
-    throw new UnauthorizedException('User not found');
-  }
-
-  user.balance += Number(amount);
-
-const depositTransaction = new this.transactionModel({
-    amount,
-    type: 'Deposit',
-    createdAt: new Date(), // Add the createdAt property with the current date/time
-  }) as Transaction;
-  user.transactions.push(depositTransaction); // Save the deposit transaction ObjectId
-// Save the transaction ObjectId
-
-  await user.save();
-
-  return user;
-}
-
-
-
-
-
-
-async withdraw(userId: string, amount: number): Promise<User> {
-  const user = await this.userModel.findById(userId);
-
-  if (!user) {
-    throw new UnauthorizedException('User not found');
-  }
-
-  if (user.balance < amount) {
-    throw new UnauthorizedException('Insufficient balance');
-  }
-
-  user.balance -= amount;
-
-  const withdrawalTransaction = new this.transactionModel({
-    amount,
-    type: 'Withdrawal',
-    createdAt: new Date(), // Add the createdAt property with the current date/time
-  }) as Transaction;
-  user.transactions.push(withdrawalTransaction);
-
-  await user.save();
-
-  return user ;
-}
-async getTransactions(userId: string): Promise<Transaction[]> {
-  const user = await this.userModel.findById(userId).exec();
-
-  if (!user) {
-    throw new NotFoundException('User not found');
-  }
-
-  return user.transactions
-}
-  async getUserById(userId: string): Promise<User>
-  {
-    const user = await this.userModel.findById(userId).exec();
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  
+  async getSingleUser(userId: string){
+    const user = await this.findUser(userId)
     return user;
   }
-
-
+ 
+  private async findUser(id: string): Promise<Users> {
+    const user = await this.userModel.findById(id)
+    if(!user){
+      throw new NotFoundException('Products not found')
+    }
+    return{
+     
+     id:user._id,
+    phoneNumber:user.phoneNumber,
+    password:user.password,
+    createdAt:user.createdAt   
+    }
+  }
 };

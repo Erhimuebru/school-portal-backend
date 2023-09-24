@@ -1,26 +1,28 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-
+// import { TransactionsModule } from './transactions/transaction.module';
+import {  UserSchema } from './user/user.schema';
+import { UsersService } from './user/user.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { AppService } from './app.service';
+import { UserController } from './user/user.controller';
+import { TransactionSchema } from './user/transaction.schema';
 
 
 @Module({
   imports: [
+    MongooseModule.forRoot('mongodb+srv://erhimuebru:dftS6ew21jiATWHi@cluster0.lye52ec.mongodb.net/school'),
+    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: 'Transaction', schema: TransactionSchema }]),
+    UsersModule,
     
-      ConfigModule.forRoot(), 
-      MongooseModule.forRootAsync({
-        useFactory: async () => ({
-          uri: "mongodb+srv://erhimuebru:dftS6ew21jiATWHi@cluster0.lye52ec.mongodb.net/school",
-          useNewUrlParser: true,
-          useUnifiedTopology: true, 
-        }),
-      }),  UsersModule, AuthModule,
+    
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuthModule, UsersService, JwtAuthGuard],
+  controllers: [UserController],
 })
+
+
 export class AppModule {}

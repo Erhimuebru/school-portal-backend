@@ -13,7 +13,13 @@
 
 export class CreateUserDto
 {
-  phoneNumber: string;
+  surname: string;
     password: string;
-    
+    fullName:string;
+    classSection:string;
+    paymentStatus:string;
+    examScores: [];
+    testScores: [];
 }
+
+

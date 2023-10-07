@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { AppService } from './app.service';
 import { UserController } from './user/user.controller';
 import { TransactionSchema } from './user/transaction.schema';
+import { ReviewsModule } from './reviews/reviews.module';
 
 
 @Module({
@@ -17,6 +18,7 @@ import { TransactionSchema } from './user/transaction.schema';
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     MongooseModule.forFeature([{ name: 'Transaction', schema: TransactionSchema }]),
     UsersModule,
+    ReviewsModule,
     
     
   ],
